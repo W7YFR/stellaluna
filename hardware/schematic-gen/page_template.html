@@ -1,0 +1,151 @@
+<title>Stellaluna Schematics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a drafting set. Each circuit is a sheet with a title block; each proposed change has its own toggle on its sheet, and toggles combine. */
+:root {
+  --paper: #f6f7f4;
+  --plate: #ffffff;
+  --ink: #1f2630;
+  --ink-2: #5d6673;
+  --rule: #d9ddd6;
+  --grid: #eef0ec;
+  --new: #c2185b;
+  --new-soft: #fbe6ee;
+  --gone: #9aa1a9;
+  --display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #14181d; --plate: #1a1f25; --ink: #dbe1e8; --ink-2: #98a2ae; --rule: #2d343c; --grid: #20262d;
+  --new: #f06a9b; --new-soft: #3a1c28; --gone: #6d7580; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #14181d; --plate: #1a1f25; --ink: #dbe1e8; --ink-2: #98a2ae; --rule: #2d343c; --grid: #20262d;
+  --new: #f06a9b; --new-soft: #3a1c28; --gone: #6d7580; color-scheme: dark }
+
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: grid; gap: 28px; }
+
+.top { display: grid; gap: 14px; }
+.top h1 { font: 600 2.1rem/1.1 var(--display); letter-spacing: .01em; margin: 0; text-wrap: balance; }
+.top p { margin: 0; max-width: 68ch; color: var(--ink-2); }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+.props { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.props-lab { font: 500 .72rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.props button { font: 500 .82rem var(--body); color: var(--ink-2); background: var(--plate); border: 1px solid var(--rule); border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+.props button[aria-pressed="true"] { color: var(--new); background: var(--new-soft); border-color: var(--new); }
+.props button:focus-visible { outline: 2px solid var(--new); outline-offset: 1px; }
+.key { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .85rem; color: var(--ink-2); }
+.key span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 22px; height: 0; border-top: 2px solid var(--ink); }
+.sw.n { border-color: var(--new); }
+.sw.x { border-top: 2px dashed var(--gone); }
+
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px; font-size: .85rem; }
+nav.toc a { color: var(--ink); text-decoration: none; border: 1px solid var(--rule); border-radius: 4px; padding: 3px 9px; background: var(--plate); }
+nav.toc a:hover { border-color: var(--ink-2); }
+nav.toc a:focus-visible { outline: 2px solid var(--new); }
+
+.sheet { border: 1px solid var(--rule); background: var(--plate); border-radius: 4px; display: grid; min-width: 0; }
+.tb { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; padding: 12px 16px; border-bottom: 1px solid var(--rule); }
+.tb h2 { font: 600 1.35rem/1.2 var(--display); margin: 0; letter-spacing: .01em; }
+.tb-sheet { font: 500 .72rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.tb-boards { font: 500 .78rem var(--mono); color: var(--ink-2); }
+.chip { margin-left: auto; font: 500 .72rem var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; color: var(--new); background: var(--new-soft); }
+.chip.same { color: var(--ink-2); background: var(--grid); }
+.desc { margin: 0; padding: 12px 16px 0; max-width: 72ch; color: var(--ink-2); }
+.scroll { overflow-x: auto; padding: 8px 16px 16px; min-width: 0; }
+.plate { background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 20px 20px; border-radius: 3px; padding: 8px; width: max-content; }
+
+/* schematic ink */
+.sch { display: block; max-width: none; height: auto; font-family: var(--body); font-size: 11px; }
+.sch .w, .sch .n, .sch .x { fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.sch .w { stroke: var(--ink); } .sch .n { stroke: var(--new); } .sch .x { stroke: var(--gone); stroke-dasharray: 4 3; }
+.sch .f.w { fill: var(--ink); } .sch .f.n { fill: var(--new); } .sch .f.x { fill: var(--gone); }
+.sch .o { fill: var(--plate); } .sch .box { fill: none; }
+.sch .t { fill: var(--ink); stroke: none; } .sch .nt { fill: var(--new); } .sch .xt { fill: var(--gone); text-decoration: line-through; }
+.sch .dim, .sch .pin { fill: var(--ink-2); }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; }
+.two > * { min-width: 0; }
+h3 { font: 600 1.2rem var(--display); margin: 0 0 8px; letter-spacing: .01em; }
+.panel { border: 1px solid var(--rule); background: var(--plate); border-radius: 4px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0; }
+.panel p { margin: 0; color: var(--ink-2); font-size: .9rem; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+td, th { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 500 .72rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+td.num, th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; width: 3.5em; }
+td.code { font-family: var(--mono); font-weight: 500; width: 3.5em; }
+td.diff { color: var(--new); font-weight: 500; }
+.tablewrap { overflow-x: auto; }
+ol.changes { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+ol.changes li { display: grid; grid-template-columns: 6.5em 1fr; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+ol.changes li:last-child { border-bottom: 0; }
+.where { font: 500 .78rem var(--mono); color: var(--new); padding-top: 2px; }
+.foot { color: var(--ink-2); font-size: .85rem; }
+code { font-family: var(--mono); font-size: .88em; }
+@media (max-width: 520px) { .top h1 { font-size: 1.7rem; } .chip, .props { margin-left: 0; } ol.changes li { grid-template-columns: 1fr; gap: 2px; } }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <h1>Stellaluna Schematics</h1>
+    <p>The Stellaluna Keyer: a K3NG keyer (Arduino Mega), its HAT, the front panel (FP) and the latch board (LB), drawn from the netlist checked on 2026-10-10. Designators use your value codes (R1 = 10k, C4 = 3.3µF, …), so a code appears wherever that value is used. J_FP and J_LB are the HAT’s headers to the front panel and the latch board.</p>
+    <div class="bar">
+      <div class="key">
+        <span><i class="sw"></i>as built</span>
+        <span><i class="sw n"></i>new or changed</span>
+      </div>
+    </div>
+    <nav class="toc" aria-label="Sheets">
+      <a href="#power">Power</a><a href="#latch">Latch</a><a href="#link">Link</a><a href="#audio">Audio</a><a href="#inputs">Paddle and pots</a><a href="#buttons">Buttons</a><a href="#leds">LEDs and OLED</a><a href="#txkey">TX keying</a><a href="#headers">Headers</a><a href="#parts">Parts</a>
+    </nav>
+  </div>
+
+  <section class="panel">
+    <h3>Proposed changes</h3>
+    <ol class="changes">{{CHANGES}}</ol>
+  </section>
+
+{{FIGS}}
+
+  <div class="two" id="headers">
+    <section class="panel">
+      <h3>J_FP · front panel header</h3>
+      <p>24 pins, numbered from the left, seen from the front (button side). Pins not listed are unused.</p>
+      <div class="tablewrap"><table><thead><tr><th class="num">Pin</th><th>Signal</th></tr></thead><tbody>{{FP}}</tbody></table></div>
+    </section>
+    <section class="panel">
+      <h3>J_LB · latch board header</h3>
+      <p>16 pins, numbered from the left, seen from the front. Pins not listed are unused.</p>
+      <div class="tablewrap"><table><thead><tr><th class="num">Pin</th><th>Signal</th></tr></thead><tbody>{{LB}}</tbody></table></div>
+    </section>
+  </div>
+
+  <section class="panel" id="parts">
+    <h3>Parts by value code</h3>
+    <p>Not counted: the Mega, the D1 Mini32, the LM386 module, the OLED, the jacks (J1–J7), the buttons (SW1–SW9), SW_PWR and JP1.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Code</th><th>Value</th><th class="num">Now</th><th class="num">After</th><th>Used for</th></tr></thead>
+      <tbody>{{BOM}}</tbody>
+    </table></div>
+  </section>
+
+  <p class="foot">Source: <code>hardware/netlist.md</code> in the stellaluna repo. Firmware pins from K3NG <code>keyer_pin_settings.h</code> and the adapter’s <code>pins.h</code>.</p>
+</div>
+
+<script>
+document.querySelectorAll('.sheet').forEach(function (sheet) {
+  var buttons = sheet.querySelectorAll('.props button');
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.setAttribute('aria-pressed', String(btn.getAttribute('aria-pressed') !== 'true'));
+      var on = [];
+      buttons.forEach(function (b) { if (b.getAttribute('aria-pressed') === 'true') on.push(b.dataset.k); });
+      var combo = on.sort().join('+');
+      sheet.querySelectorAll('.plate').forEach(function (pl) { pl.hidden = pl.dataset.combo !== combo; });
+    });
+  });
+});
+</script>

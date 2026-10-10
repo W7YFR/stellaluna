@@ -1,0 +1,8 @@
+# Photoshop sources stay out of the repo
+*.psd
+
+# schematic previews and Python cache
+hardware/schematic-gen/out/
+__pycache__/
+
+.DS_Store
