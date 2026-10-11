@@ -41,24 +41,6 @@ All firmware; no hardware bugs are open.
 
 ## Features: firmware only
 
-### Forward the ESP32's log to the keyer's USB port (keyer, adapter)
-- **What:** in its case only the keyer's USB-C port can be reached, not the ESP32's, so the adapter's serial log
-  (the `DIAG` lines, connection events) can't be seen without opening it up. Stream it over the existing link and
-  out of the keyer's USB port instead.
-- **How:**
-  - Adapter: route its `Serial.print` output through one log function that also queues each line for the link
-    when forwarding is on. Send lines as a new frame type (`LG,<text>`), split to fit the 64-byte frame limit.
-    Keep a small ring buffer of recent lines (a couple of KB) and send it first when forwarding turns on, so you see
-    what happened before you plugged in.
-  - Keyer: print each `LG` frame to its USB serial port, prefixed (`ESP> `).
-  - Turn it on and off as an adapter setting (`vb.log`, default off, not saved), so it works from the CLI
-    (`\$ vb.log 1`) and the menu.
-  - The link is 38400 baud shared with received text and status screens: rate-limit the log, send it only when
-    nothing else is waiting, and drop lines with a "(N lines dropped)" note rather than delay link traffic.
-  - Both sides already ignore frame types they don't know, so this needs no link protocol version bump.
-- **Done when:** with the keyer on USB and `vb.log` on, the adapter's log (including the recent history) appears in
-  a serial monitor on the keyer's port, and keying, received text and status screens are unaffected.
-
 ### Dit hold opens the settings menu (keyer)
 - **What:** holding the dit paddle for a run of dits currently clears or resets the display, after 10 dits. Make
   it open the settings menu instead, after 8 dits.
@@ -139,6 +121,20 @@ All firmware; no hardware bugs are open.
     a friend's room if one is on (next to Lobby, Last and Custom).
 - **Done when:** with a friend online, the keyer says where they are, `/FRIEND` joins that room, and the startup
   mode joins it at power-on.
+
+### Button remapping (keyer)
+- **What:** choose which job each physical button does: for example, the first button on the panel acts as
+  memory 3 and the third acts as the command button, so the buttons can be laid out to suit without rewiring the
+  resistor ladder.
+- **How:** the ladder on A1 is decoded into button numbers in `initialize_analog_button_array()` (a low and high
+  analog limit per button), and everything downstream (`analogbuttonread()`, `check_buttons()`, memories, extra
+  buttons, command mode) works on those numbers. Remap at that one point: give logical button N the analog window
+  of physical button `map[N]`, so nothing else changes. Start with a compile-time table behind an option (for
+  example `OPTION_BUTTON_MAP` with `button_map[] = {...}` in the settings files, one entry per button, identity by
+  default), and check it's a permutation at boot. A menu setting could follow (saved in the spare EEPROM bytes
+  after the configuration), but every row of the table is a setting, so it needs a good menu design first.
+- **Done when:** with a map set, each physical button does the job it's mapped to, in normal and command mode,
+  including holds and the extra button; with no map, nothing changes.
 
 ## Features: need hardware work
 
