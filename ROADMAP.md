@@ -82,15 +82,18 @@ All firmware; no hardware bugs are open.
 - **Done when:** the example above sends as described, and turning the Farnsworth knob above the WPM knob turns
   Farnsworth off.
 
-### Why it disconnected, in /DIAG (adapter)
-- **What:** the adapter sometimes drops VBand and reconnects. /DIAG should say why, so a brownout can be told apart
-  from a WiFi drop or a server disconnect without a USB cable. (The hardware side, bulk caps at the ESP32, is done.)
-- **How:** at boot, read `esp_reset_reason()` and keep it (brownout, watchdog, power-on, software). Record WiFi
-  disconnect reason codes (already printed by `DIAGNOSTICS_LOG`), WebSocket disconnects and the signal strength at
-  each, with time since boot. Keep the last few in RTC memory or NVS so a reboot doesn't erase them. Show the
-  summary in /DIAG on the keyer.
-- **Done when:** after an unexplained reconnect, /DIAG shows whether the board reset (and why) or which connection
-  dropped.
+### Notice a stalled VBand connection sooner (adapter)
+- **What:** a VBand drop seen on 2026-10-10 (`/DIAG`: `ws1 wifi0`, no reboot) came after a near-5 s gap in
+  someone's sending: the connection seems to stall before it's closed, and nothing on our side notices until the
+  server or the network closes it.
+- **How:** first collect a few drops with `/LAST` and the logged event list (each VBand drop keeps how long the server
+  had been silent before it). If they're stalls, turn on the WebSocket library's heartbeat
+  (`ws.enableHeartbeat(ping interval, pong timeout, missed pongs)`), so a dead connection is dropped and reconnected
+  within a few seconds; check the VBand server answers pings first, and don't make it so tight that a slow moment
+  reconnects needlessly. If they're abrupt closes with no silence before them, it's the server's doing, and there's
+  nothing to change here.
+- **Done when:** the cause of the drops is known, and, if they're stalls, one is reconnected within a few seconds of
+  the server going silent.
 
 ### The connecting screen never times out (adapter, keyer)
 - **What:** while the adapter is connecting or reconnecting to VBand, its status screen on the keyer times out and
