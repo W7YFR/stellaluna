@@ -12,22 +12,7 @@ Each item says which parts it touches (**keyer**, **adapter**, **hardware**) and
 
 ## Bugs
 
-All firmware; no hardware bugs are open.
-
-### The LED shows a connection problem while VBand messages keep playing (adapter)
-- **What:** the LED starts flashing (connection lost), but received code keeps playing and appearing on the display
-  for a while.
-- **How:** most likely the playback queue draining: received elements play at the sender's own speed, and the
-  queue (up to 128 elements) isn't cleared on disconnect, so a long fast message can run well behind. First check:
-  the playback should stop within about 10 s of the LED flashing; anything longer is a real bug. Then decide whether
-  to keep draining (you hear the end of what was sent) or clear the queue on disconnect (silence matches the LED).
-- **Done when:** the behavior is confirmed and the choice made; if clearing, playback stops when the LED starts
-  flashing.
-
-### "Room X: N others" logs twice after each join (adapter)
-- **What:** the line appears twice in the serial log (two user-list replies arrive). Nothing visible on the keyer.
-- **How:** print it once per join (track the last count printed, or print only from the first reply).
-- **Done when:** one line per join.
+None open.
 
 ## Features: firmware only
 
