@@ -1,0 +1,3 @@
+# Stellaluna build without a display: run on the w7yfr checkout (or a branch with its config).
+include as-is
+-FEATURE_OLED_SSD1306

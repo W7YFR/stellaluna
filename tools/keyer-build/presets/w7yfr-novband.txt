@@ -1,0 +1,3 @@
+# Stellaluna build without the VBand link.
+include as-is
+-FEATURE_VBAND_LINK

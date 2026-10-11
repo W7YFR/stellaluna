@@ -1,0 +1,8 @@
+# The presets run by --matrix (make keyer-matrix), one per line.
+as-is
+w7yfr-nodisp
+w7yfr-nocli
+w7yfr-novband
+test-everything
+megakeyer
+nanokeyer-rev-d

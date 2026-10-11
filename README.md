@@ -104,10 +104,23 @@ The three repos are independent; there are no submodules.
 |---|---|---|---|---|---|
 | (untagged) 2026-10-07 | v0 hand-wired | `b37df8f` | `994b395` | 1 | settings menu, start modes, lobby, room counts |
 
+## Getting set up
+
+Clone this repo into an empty folder, then from it:
+
+```sh
+make setup     # clones the keyer fork and the adapter next to this repo
+make doctor    # checks the tools and repos, and says how to fix anything missing
+make help      # everything else: schematics, keyer and adapter builds
+```
+
 ## Building and flashing
 
-- Keyer: see the fork's README. Build with the Arduino IDE or `arduino-cli` for the Mega 2560.
-- Adapter: PlatformIO (`pio run -t upload`), or OTA once it's on WiFi. See the adapter's README.
+- Keyer: `make keyer-build` builds any checkout, worktree or branch (including ones cut from upstream `master`,
+  which has no PlatformIO setup); see `tools/keyer-build/`. On the `w7yfr` checkout, `pio run -e w7yfr` also works.
+  Flash with `pio run -e w7yfr -t upload` or the Arduino IDE.
+- Adapter: `make adapter-build`; upload over USB (`pio run -e wemos_d1_mini32 -t upload`) or OTA once it's on WiFi.
+  See the adapter's README.
 - When both boards are on USB, pull JP1 (the ESP32 5V jumper) and keep the barrel supply off.
 
 ## License

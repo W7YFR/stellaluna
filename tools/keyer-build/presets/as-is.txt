@@ -1,0 +1,3 @@
+# The checkout's own configuration (keyer_features_and_options.h etc.), generic Mega 2560 profile.
+# On the w7yfr checkout this is the Stellaluna build.
+board megaatmega2560

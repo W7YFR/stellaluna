@@ -1,0 +1,17 @@
+# Turn on the Stellaluna build's features on top of any branch (for example a feature branch cut from master),
+# so the new code compiles alongside them. Pins and other values stay the branch's own.
+# Features the branch doesn't have code for are simply unused.
+include as-is
++FEATURE_BUTTONS
++FEATURE_COMMAND_MODE
++FEATURE_COMMAND_LINE_INTERFACE
++FEATURE_MEMORIES
++FEATURE_MEMORY_MACROS
++FEATURE_TRAINING_COMMAND_LINE_INTERFACE
++FEATURE_POTENTIOMETER
++FEATURE_SERIAL_HELP
++FEATURE_FARNSWORTH
++FEATURE_OLED_SSD1306
++FEATURE_PADDLE_ECHO
++FEATURE_STRAIGHT_KEY_ECHO
++OPTION_PROSIGN_SUPPORT

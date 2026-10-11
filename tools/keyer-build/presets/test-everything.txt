@@ -1,0 +1,10 @@
+# K3NG's compile-everything profile (keyer_*_test_everything.h). New FEATURE_/OPTION_ defines and settings
+# must be added to its files too, so this catches anything missing.
+board megaatmega2560
+hardware HARDWARE_TEST_EVERYTHING
+lib arduino-libraries/Ethernet
+lib arduino-libraries/SD
+lib duinowitchery/hd44780
+# Upstream K3NG has narrowing conversions in its LCD bar-graph characters that newer GCC rejects
+# (noted in the fork's platformio.ini as a pre-existing error).
+flag -Wno-narrowing

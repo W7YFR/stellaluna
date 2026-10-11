@@ -1,0 +1,4 @@
+# Stellaluna build without the serial command line interface.
+include as-is
+-FEATURE_COMMAND_LINE_INTERFACE
+-FEATURE_TRAINING_COMMAND_LINE_INTERFACE

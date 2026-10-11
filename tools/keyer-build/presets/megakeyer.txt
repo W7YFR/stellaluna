@@ -1,0 +1,4 @@
+# Another board profile on the Mega (keyer_*_megakeyer.h).
+board megaatmega2560
+hardware HARDWARE_MEGAKEYER
+lib duinowitchery/hd44780

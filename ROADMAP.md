@@ -44,6 +44,24 @@ All firmware; no hardware bugs are open.
 - **Done when:** the behavior is confirmed and the choice made; if clearing, playback stops when the LED starts
   flashing.
 
+### The keyer doesn't build without a display (keyer)
+- **What:** the Stellaluna build with `FEATURE_OLED_SSD1306` turned off fails to link: `undefined reference to
+  ssd1306_clear_display()` and `ssd1306_toggle_display()`. Found by the `w7yfr-nodisp` preset.
+- **How:** the extra button's display toggle and clear (commit `bb64cea`, made directly on `w7yfr`) call the OLED
+  functions without checking the OLED is in the build. Wrap those calls in `#if defined(FEATURE_OLED_SSD1306)` (or
+  give them a no-display fallback). Best done on `feature/extra-button` or a small fix branch, so the fix is
+  mergeable on its own.
+- **Done when:** `make keyer-build PRESET=w7yfr-nodisp` builds.
+
+### The keyer doesn't build without the CLI (keyer, probably upstream)
+- **What:** turning off `FEATURE_COMMAND_LINE_INTERFACE` fails with `'cli_straight_key_echo' was not declared` when
+  `FEATURE_STRAIGHT_KEY_ECHO` and a display are on. Found by the `w7yfr-nocli` preset.
+- **How:** `cli_straight_key_echo` is only declared with the CLI, but the display's straight-key echo uses it.
+  Upstream `master` has the same code, so first confirm it fails there too (`make keyer-build
+  KEYER=<master worktree> PRESET=w7yfr-features ARGS='-U FEATURE_COMMAND_LINE_INTERFACE'`). Fix by declaring it
+  whenever `FEATURE_STRAIGHT_KEY_ECHO` is on; if it's upstream's, on its own `fix/` branch from `master`.
+- **Done when:** `make keyer-build PRESET=w7yfr-nocli` builds.
+
 ### "Room X: N others" logs twice after each join (adapter)
 - **What:** the line appears twice in the serial log (two user-list replies arrive). Nothing visible on the keyer.
 - **How:** print it once per join (track the last count printed, or print only from the first reply).

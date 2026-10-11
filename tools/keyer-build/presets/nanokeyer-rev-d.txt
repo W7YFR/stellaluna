@@ -1,0 +1,3 @@
+# A small-AVR board profile (ATmega328, keyer_*_nanokeyer_rev_d.h): catches code that assumes a Mega.
+board nanoatmega328
+hardware HARDWARE_NANOKEYER_REV_D
