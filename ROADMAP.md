@@ -16,13 +16,6 @@ None open.
 
 ## Features: firmware only
 
-### Dit hold opens the settings menu (keyer)
-- **What:** holding the dit paddle for a run of dits currently clears or resets the display, after 10 dits. Make
-  it open the settings menu instead, after 8 dits.
-- **How:** the dit-hold detection is the fork's `FEATURE_DIT_HOLD_RESET`. Change the count to 8 and the action to
-  entering command mode with the menu open. Clearing the display stays on the extra button.
-- **Done when:** 8 dits in a row open the menu from normal sending, and nothing else changes.
-
 ### A clearer settings menu (keyer, adapter)
 - **What:** the menu feels hectic. Give it more hierarchy and order it by what's used most, not by which board owns
   the setting.
