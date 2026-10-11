@@ -14,7 +14,7 @@ Each item says which parts it touches (**keyer**, **adapter**, **hardware**) and
 
 None open.
 
-## Features: firmware only
+## Keyer features (firmware only)
 
 ### A clearer settings menu (keyer, adapter)
 - **What:** the menu feels hectic. Give it more hierarchy and order it by what's used most, not by which board owns
@@ -27,6 +27,20 @@ None open.
   - The adapter's settings may need a group field in the `SI` items so the keyer can place them, which is a link
     protocol change.
 - **Done when:** the agreed structure is in, and everything reachable today is still reachable.
+
+### Button remapping (keyer)
+- **What:** choose which job each physical button does: for example, the first button on the panel acts as
+  memory 3 and the third acts as the command button, so the buttons can be laid out to suit without rewiring the
+  resistor ladder.
+- **How:** the ladder on A1 is decoded into button numbers in `initialize_analog_button_array()` (a low and high
+  analog limit per button), and everything downstream (`analogbuttonread()`, `check_buttons()`, memories, extra
+  buttons, command mode) works on those numbers. Remap at that one point: give logical button N the analog window
+  of physical button `map[N]`, so nothing else changes. Start with a compile-time table behind an option (for
+  example `OPTION_BUTTON_MAP` with `button_map[] = {...}` in the settings files, one entry per button, identity by
+  default), and check it's a permutation at boot. A menu setting could follow (saved in the spare EEPROM bytes
+  after the configuration), but every row of the table is a setting, so it needs a good menu design first.
+- **Done when:** with a map set, each physical button does the job it's mapped to, in normal and command mode,
+  including holds and the extra button; with no map, nothing changes.
 
 ### Training menu with Q-codes (keyer)
 - **What:** training from the menu, without a computer: Q-code practice, plus the other trainers K3NG has.
@@ -49,6 +63,10 @@ None open.
   and the `ky.fw` / `ky.cwpm` settings to match.
 - **Done when:** the example above sends as described, and turning the Farnsworth knob above the WPM knob turns
   Farnsworth off.
+
+## VBand features (firmware only)
+
+The adapter, and its side of the keyer.
 
 ### Notice a stalled VBand connection sooner (adapter)
 - **What:** a VBand drop seen on 2026-10-10 (`/DIAG`: `ws1 wifi0`, no reboot) came after a near-5 s gap in
@@ -93,21 +111,7 @@ None open.
 - **Done when:** with a friend online, the keyer says where they are, `/FRIEND` joins that room, and the startup
   mode joins it at power-on.
 
-### Button remapping (keyer)
-- **What:** choose which job each physical button does: for example, the first button on the panel acts as
-  memory 3 and the third acts as the command button, so the buttons can be laid out to suit without rewiring the
-  resistor ladder.
-- **How:** the ladder on A1 is decoded into button numbers in `initialize_analog_button_array()` (a low and high
-  analog limit per button), and everything downstream (`analogbuttonread()`, `check_buttons()`, memories, extra
-  buttons, command mode) works on those numbers. Remap at that one point: give logical button N the analog window
-  of physical button `map[N]`, so nothing else changes. Start with a compile-time table behind an option (for
-  example `OPTION_BUTTON_MAP` with `button_map[] = {...}` in the settings files, one entry per button, identity by
-  default), and check it's a permutation at boot. A menu setting could follow (saved in the spare EEPROM bytes
-  after the configuration), but every row of the table is a setting, so it needs a good menu design first.
-- **Done when:** with a map set, each physical button does the job it's mapped to, in normal and command mode,
-  including holds and the extra button; with no map, nothing changes.
-
-## Features: need hardware work
+## Features that need hardware work
 
 ### Amp drives the headphones (hardware)
 - **What:** VBand audio is loud on the speaker but quiet in the headphones, even at full volume.
