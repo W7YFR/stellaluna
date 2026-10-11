@@ -14,16 +14,6 @@ Each item says which parts it touches (**keyer**, **adapter**, **hardware**) and
 
 All firmware; no hardware bugs are open.
 
-### Settings don't persist across power cycles (keyer)
-- **What:** some settings changed in the menu are lost at power-off. Paddle echo has to be turned back on after every
-  power-on.
-- **How:** paddle echo (`ky.echo`) is saved outside K3NG's `configuration` struct, in the spare EEPROM byte at
-  `sizeof(configuration)+1` (the memories start at `+5`). Check that the byte is written when the setting changes, and
-  that it's read back at boot after whatever sets paddle echo's default (otherwise the default overwrites it). Then
-  check every other setting the menu can change: the ones inside `configuration` rely on K3NG's delayed config write
-  (`config_dirty`), which may not be triggered by the menu's changes.
-- **Done when:** each keyer setting changed from the menu survives a power cycle.
-
 ### The VBand menu breaks when the adapter powers off (keyer)
 - **What:** the VBand settings and commands only exist while the ESP32 is on. With the menu open, powering the
   ESP32 off with its button leaves the VBand part of the menu open but broken.
