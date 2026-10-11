@@ -14,16 +14,6 @@ Each item says which parts it touches (**keyer**, **adapter**, **hardware**) and
 
 All firmware; no hardware bugs are open.
 
-### The VBand menu breaks when the adapter powers off (keyer)
-- **What:** the VBand settings and commands only exist while the ESP32 is on. With the menu open, powering the
-  ESP32 off with its button leaves the VBand part of the menu open but broken.
-- **How:** the adapter sends `BYE,OFF` before it powers off, and the link drops after. When either happens while the
-  menu is in the VBand group, leave the group: back to the top level with a short "Adapter off" message. While the
-  link is down, either hide the VBand group or show it with a single row explaining the adapter is off (or "Power
-  on", once the keyer can power the ESP32 on; see below).
-- **Done when:** powering the adapter off from inside its menu lands back on the top level with the message, and the
-  menu keeps working.
-
 ### The LED shows a connection problem while VBand messages keep playing (adapter)
 - **What:** the LED starts flashing (connection lost), but received code keeps playing and appearing on the display
   for a while.
