@@ -16,18 +16,6 @@ None open.
 
 ## Keyer features (firmware only)
 
-### A clearer settings menu (keyer, adapter)
-- **What:** the menu feels hectic. Give it more hierarchy and order it by what's used most, not by which board owns
-  the setting.
-- **How:**
-  - First, move the keyer's settings table (`settings_keyer_items` and its labels) to `PROGMEM`. The build is at
-    about 51.5% RAM (3.9 KB free), and more groups and labels won't fit otherwise.
-  - Then agree on the structure before building it. For example: top level Speed and keying, Sidetone, VBand
-    (Connect or Disconnect, Commands, Settings), Memories, Advanced; the most-used rows first in each group.
-  - The adapter's settings may need a group field in the `SI` items so the keyer can place them, which is a link
-    protocol change.
-- **Done when:** the agreed structure is in, and everything reachable today is still reachable.
-
 ### Button remapping (keyer)
 - **What:** choose which job each physical button does: for example, the first button on the panel acts as
   memory 3 and the third acts as the command button, so the buttons can be laid out to suit without rewiring the
@@ -63,6 +51,17 @@ None open.
   and the `ky.fw` / `ky.cwpm` settings to match.
 - **Done when:** the example above sends as described, and turning the Farnsworth knob above the WPM knob turns
   Farnsworth off.
+
+### Commit hash on the startup screen (keyer)
+- **What:** the startup screen's fourth line shows K3NG's `CODE_VERSION` ("V: 2024.03.20.2239"), which no longer says
+  which build is running. Show the fork's commit hash instead.
+- **How:** the adapter already does this: its `platformio.ini` passes
+  `-DFIRMWARE_GIT_REV=$(git describe --always --dirty=+ --exclude='*')` as a build flag. Do the same for the
+  keyer's `w7yfr` environment, and show it in place of `CODE_VERSION` when it's defined, falling back to
+  `CODE_VERSION` for Arduino IDE builds, which have no build flags. Check that it fits in 18 columns (a short hash
+  plus `+` for a build with uncommitted changes), and consider adding it to the CLI's version output too.
+- **Done when:** a PlatformIO build's startup screen shows the commit it was built from, with `+` when the tree had
+  uncommitted changes, and an Arduino IDE build still shows `CODE_VERSION`.
 
 ## VBand features (firmware only)
 
