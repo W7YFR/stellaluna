@@ -52,17 +52,6 @@ None open.
 - **Done when:** the example above sends as described, and turning the Farnsworth knob above the WPM knob turns
   Farnsworth off.
 
-### Commit hash on the startup screen (keyer)
-- **What:** the startup screen's fourth line shows K3NG's `CODE_VERSION` ("V: 2024.03.20.2239"), which no longer says
-  which build is running. Show the fork's commit hash instead.
-- **How:** the adapter already does this: its `platformio.ini` passes
-  `-DFIRMWARE_GIT_REV=$(git describe --always --dirty=+ --exclude='*')` as a build flag. Do the same for the
-  keyer's `w7yfr` environment, and show it in place of `CODE_VERSION` when it's defined, falling back to
-  `CODE_VERSION` for Arduino IDE builds, which have no build flags. Check that it fits in 18 columns (a short hash
-  plus `+` for a build with uncommitted changes), and consider adding it to the CLI's version output too.
-- **Done when:** a PlatformIO build's startup screen shows the commit it was built from, with `+` when the tree had
-  uncommitted changes, and an Arduino IDE build still shows `CODE_VERSION`.
-
 ## VBand features (firmware only)
 
 The adapter, and its side of the keyer.
