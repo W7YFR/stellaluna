@@ -38,19 +38,22 @@ None open.
   RAM cost of each (word lists should live in `PROGMEM`).
 - **Done when:** Q-code practice and the other trainers start from the menu and exit cleanly back to it.
 
-### Farnsworth pot the other way round (keyer)
-- **What:** today the main speed knob sets the overall (effective) speed and the Farnsworth knob sets a faster
-  character speed. The expected way: the WPM knob sets the character speed only, and the Farnsworth knob sets the
-  effective speed. With WPM at 25 and Farnsworth at 10, paddle keying sends characters at 25 and memories go out at
-  an effective 10. A Farnsworth setting at or above the character speed means no Farnsworth.
-- **How:** K3NG times paddle elements from `configuration.wpm` and stretches spacing only when
-  `wpm_farnsworth > wpm`. So it isn't just swapping the two pots: paddle timing has to follow the character speed
-  (the WPM knob), and memories and buffered sending use the character speed for elements with spacing stretched to
-  the Farnsworth knob's effective speed. Do it as an option (for example
-  `OPTION_FARNSWORTH_POT_SETS_EFFECTIVE_SPEED`) so upstream's behavior stays available, and update the display labels
-  and the `ky.fw` / `ky.cwpm` settings to match.
-- **Done when:** the example above sends as described, and turning the Farnsworth knob above the WPM knob turns
-  Farnsworth off.
+### Winkey hosts with the Farnsworth effective speed option (keyer)
+- **What:** with `OPTION_FARNSWORTH_SETS_EFFECTIVE_SPEED` (on in `w7yfr`), the keyer's speed is the character speed
+  and its Farnsworth setting the effective speed. A Winkey host (N1MM, Win-Test and the like, over
+  `FEATURE_WINKEY_EMULATION`) still means K3NG's and the K1EL WinKeyer's way: its speed is the overall speed and its
+  Farnsworth speed a faster character speed. So "speed 10, Farnsworth 25" from a host (characters at 25, overall 10)
+  reads as Farnsworth off and sends everything at 10. Winkey emulation isn't in the `w7yfr` build today.
+- **How:** a translation layer at the Winkey edge, only with the option. Keep the host's view of the two speeds
+  and map it onto the keyer's: Farnsworth on (host Farnsworth above host speed) means speed = host Farnsworth and
+  Farnsworth = host speed; otherwise speed = host speed and Farnsworth off. Incoming: the speed command
+  (`winkey_unbuffered_speed_command()`), the Farnsworth command (`winkey_farnsworth_command()`), HSCW and loading
+  settings (`winkey_load_settings_command()`). Outgoing, map back: the speed pot reports (`(wpm - pot_wpm_low_value)
+  | 128`, in a few places) and the settings dump (which writes `wpm_farnsworth` and the speed). Check
+  `winkey_last_unbuffered_speed_wpm` and the pot-speed range commands still make sense with the speed being the
+  character speed.
+- **Done when:** with the option on, a host's speed and Farnsworth settings send as they would on a K1EL WinKeyer,
+  the host shows the right speed when the pot moves, and nothing changes without the option.
 
 ## VBand features (firmware only)
 
