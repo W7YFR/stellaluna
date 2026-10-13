@@ -93,21 +93,6 @@ The adapter, and its side of the keyer.
 - **Done when:** the cause of the drops is known, and, if they're stalls, one is reconnected within a few seconds of
   the server going silent.
 
-### The connecting screen never times out (adapter, keyer)
-- **What:** while the adapter is connecting or reconnecting to VBand, its status screen on the keyer times out and
-  disappears, so it looks like nothing is happening.
-- **How:** status screens come with a display time (`ST,<ms>,...`). While connecting, send the screen with no
-  timeout (or keep refreshing it), and update a line every few seconds with the attempt number or the elapsed time.
-  Clear it when the channel is joined, when connecting stops, or when you leave the screen.
-- **Done when:** the connecting screen stays up and visibly changes until it connects or gives up.
-
-### Setting for the join announcement on the LED (adapter)
-- **What:** after joining a channel, the LED blinks the channel's code in Morse. Make that a setting (on or off).
-- **How:** the announcement is `startAnnounce()` in `led_indicator.cpp`. Add a boolean adapter setting (for example
-  `vb.ann`, default on) and skip the announcement when it's off. The connection blinks and the keying LED stay.
-- **Done when:** with the setting off, joining a channel doesn't blink the code; everything else on the LED is
-  unchanged.
-
 ### VBand friends list (adapter, keyer)
 - **What:** a list of friends' callsigns. The adapter notices when a friend is on VBand and can take you to their
   room.
