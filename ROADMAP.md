@@ -38,20 +38,41 @@ None open.
   RAM cost of each (word lists should live in `PROGMEM`).
 - **Done when:** Q-code practice and the other trainers start from the menu and exit cleanly back to it.
 
+### Choose the USB port's mode: CLI or Winkey (keyer)
+- **What:** with `FEATURE_WINKEY_EMULATION` built in, the USB port is either the CLI (115200 baud, text: `\S`,
+  `\$`, the `ESP>` log) or Winkey emulation (1200 baud, the WinKeyer's binary protocol, for logging programs), never
+  both. K3NG only chooses at power-on: the default comes from `OPTION_PRIMARY_SERIAL_PORT_DEFAULT_WINKEY_EMULATION`
+  and holding the command button gives the other. Make it a saved setting instead, so Winkey is something you turn
+  on when you want it rather than a power-on default.
+- **How:** a "USB port" setting (CLI / Winkey) in the menu and as `ky.usb` (`/KY USB WINKEY`, `\$ ky.usb winkey`),
+  only in builds with both `FEATURE_WINKEY_EMULATION` and `FEATURE_COMMAND_LINE_INTERFACE`, saved in the spare
+  EEPROM bytes after the configuration (`SETTINGS_EXTRAS_ADDRESS`). Changing it switches the port straight away:
+  end it, set `primary_serial_port_mode`, and begin it again at the mode's baud rate (the Winkey code already ends
+  and reopens the port for a host). At power-on the saved setting decides; the option is only the default before
+  anything is saved, and the command button at power-on still gives the other mode for that session, as a way back
+  without the display. Leaving Winkey mode should close any host session cleanly.
+- **Done when:** the menu or the CLI switches the port between CLI and Winkey without a power cycle, the choice
+  survives one, and builds without Winkey emulation don't show the setting.
+
 ### Winkey hosts with the Farnsworth effective speed option (keyer)
 - **What:** with `OPTION_FARNSWORTH_SETS_EFFECTIVE_SPEED` (on in `w7yfr`), the keyer's speed is the character speed
   and its Farnsworth setting the effective speed. A Winkey host (N1MM, Win-Test and the like, over
   `FEATURE_WINKEY_EMULATION`) still means K3NG's and the K1EL WinKeyer's way: its speed is the overall speed and its
   Farnsworth speed a faster character speed. So "speed 10, Farnsworth 25" from a host (characters at 25, overall 10)
   reads as Farnsworth off and sends everything at 10. Winkey emulation isn't in the `w7yfr` build today.
-- **How:** a translation layer at the Winkey edge, only with the option. Keep the host's view of the two speeds
-  and map it onto the keyer's: Farnsworth on (host Farnsworth above host speed) means speed = host Farnsworth and
-  Farnsworth = host speed; otherwise speed = host speed and Farnsworth off. Incoming: the speed command
+- **How:** a small translation layer at the Winkey edge, only with the option: two helpers and edits where Winkey
+  commands come in and reports go out, probably 50 to 80 lines. Keep the host's view of the two speeds and map it
+  onto the keyer's: Farnsworth on (host Farnsworth above host speed) means speed = host Farnsworth and Farnsworth =
+  host speed; otherwise speed = host speed and Farnsworth off. Incoming: the speed command
   (`winkey_unbuffered_speed_command()`), the Farnsworth command (`winkey_farnsworth_command()`), HSCW and loading
   settings (`winkey_load_settings_command()`). Outgoing, map back: the speed pot reports (`(wpm - pot_wpm_low_value)
-  | 128`, in a few places) and the settings dump (which writes `wpm_farnsworth` and the speed). Check
-  `winkey_last_unbuffered_speed_wpm` and the pot-speed range commands still make sense with the speed being the
-  character speed.
+  | 128`, in a few places) and the settings dump (which writes `wpm_farnsworth` and the speed). Decided: the speed
+  pot keeps meaning the character speed while a host is connected, and is reported to the host as its Farnsworth
+  (character) speed when Farnsworth is on.
+- **Testing:** needs `FEATURE_WINKEY_EMULATION` in a build, which puts the USB port in Winkey mode (1200 baud, the
+  binary protocol; no CLI or `ESP>` log) at power-on; the command button held at power-on gives the CLI instead
+  (with `OPTION_PRIMARY_SERIAL_PORT_DEFAULT_WINKEY_EMULATION`, set in `w7yfr`; without it, the other way round).
+  Test with a logging program, or a short Python script that sends Winkey commands and reads the replies.
 - **Done when:** with the option on, a host's speed and Farnsworth settings send as they would on a K1EL WinKeyer,
   the host shows the right speed when the pot moves, and nothing changes without the option.
 
