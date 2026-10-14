@@ -68,6 +68,20 @@ if [[ -n "$host" ]]; then
   else warn "SSH to $host failed (needed to push)" "check your SSH key / ~/.ssh/config entry for $host"; fi
 else ok "origin uses HTTPS (pushing needs a credential helper or gh auth login)"; fi
 
+echo "Keyer upstream map"
+if [[ -f "$WS/k3ng_cw_keyer/UPSTREAM.md" ]]; then
+  # fetches upstream and origin (reads only); a stale map or a moved upstream is a warning, not a failure
+  if upout="$(python3 "$HUB/tools/keyer-upstream/check_upstream.py" --keyer "$WS/k3ng_cw_keyer" 2>&1)"; then
+    ok "k3ng_cw_keyer/UPSTREAM.md matches the branches, and upstream master hasn't moved"
+  else
+    warn "k3ng_cw_keyer/UPSTREAM.md doesn't match the branches (or upstream moved, or the fetch failed):" \
+         "update UPSTREAM.md (or rebase), then make keyer-upstream"
+    printf '%s\n' "$upout" | sed 's/^/        /'
+  fi
+elif [[ -d "$WS/k3ng_cw_keyer/.git" ]]; then
+  warn "k3ng_cw_keyer/UPSTREAM.md not found (is the keyer checkout on w7yfr?)"
+fi
+
 echo "PlatformIO platforms"
 if command -v pio >/dev/null 2>&1; then
   for p in atmelavr espressif32; do

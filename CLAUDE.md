@@ -21,10 +21,11 @@ Work from the workspace folder so all of them are in reach. `make doctor` checks
 | Target | What |
 |---|---|
 | `make setup` | Clone the other repos next to this one, add the K3NG `upstream` remote, fetch the adapter's submodule |
-| `make doctor` | Check tools (git, python3, PlatformIO, rsvg-convert, exiftool), repos, branches, SSH; says how to fix gaps |
+| `make doctor` | Check tools (git, python3, PlatformIO, rsvg-convert, exiftool), repos, branches, SSH, the keyer's upstream map; says how to fix gaps |
 | `make schematics` | Regenerate the schematics from `hardware/schematic-gen/` |
 | `make keyer-build` | Build the keyer: `KEYER=<checkout or worktree>`, `PRESET=<name>`, `ARGS='-D FEATURE_X'` |
 | `make keyer-matrix` | Build every preset in `tools/keyer-build/presets/matrix.txt` |
+| `make keyer-upstream` | Check the keyer's `UPSTREAM.md` against its branches (reads only) |
 | `make adapter-build` | Build the adapter (USB environment) |
 
 None of them upload anything.
@@ -101,7 +102,11 @@ None of them upload anything.
   `FAIL` lines are new problems. Some other boards' profiles fail on upstream `master` under PlatformIO (functions
   its prototype scanner misses), so `old` is expected there. The person flashes and tests quickly and will report
   problems.
-- RAM is tight (about 51.5% used, 3.9 KB free): check the RAM figure in the build summary, and put large tables and
+- **Upstream map.** The keyer's `UPSTREAM.md` maps every fix/feature branch back to upstream K3NG (base, in `w7yfr`,
+  readiness). When a branch is created or merged, add or update its row and run `make keyer-upstream`. Never open
+  pull requests, issues or comments against upstream: getting branches ready is the job, submitting is the owner's
+  call.
+- RAM is tight (about 54% used, 3.8 KB free): check the RAM figure in the build summary, and put large tables and
   strings in `PROGMEM`.
 - Arduino's generated prototypes can mention types declared inside `#ifdef`s: define such structs unconditionally.
 

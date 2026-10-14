@@ -10,6 +10,9 @@ together with which hardware is in the README's known-good sets table.
 Planned work is in [ROADMAP.md](ROADMAP.md).
 
 ### Added
+- `tools/keyer-upstream/` and `make keyer-upstream`: checks the keyer's `UPSTREAM.md` (its map of every branch back
+  to upstream K3NG) against git: every branch listed and pushed, bases right (including a branch cut from an earlier
+  version of another), the "In `w7yfr`" column true, and upstream `master` not moved on. Reads only. `make doctor` runs it as a warning.
 - `tools/winkey-host/`: a small Winkey host for testing the keyer's Winkey emulation without a logging program.
   It finds the keyer's port in its `platformio.ini`, and has tasks: `check` (is it answering, and its settings),
   `farnsworth` (tests the Farnsworth translation, PASS or FAIL), `pots` (what the keyer reports as the pots turn),

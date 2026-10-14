@@ -5,7 +5,7 @@ ADAPTER := $(WS)/k3ng-vband-adapter
 PRESET  ?= as-is
 
 .DEFAULT_GOAL := help
-.PHONY: help setup doctor schematics keyer-build keyer-matrix adapter-build
+.PHONY: help setup doctor schematics keyer-build keyer-matrix keyer-upstream adapter-build
 
 help:  ## list the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-14s %s\n", $$1, $$2}'
@@ -25,6 +25,9 @@ keyer-build:  ## build the keyer (KEYER, PRESET, ARGS); never uploads
 
 keyer-matrix:  ## build every preset in tools/keyer-build/presets/matrix.txt (slow: when a feature is done)
 	@python3 tools/keyer-build/keyer-build.py --keyer "$(KEYER)" --matrix --compare master $(ARGS)
+
+keyer-upstream:  ## check the keyer's UPSTREAM.md against its branches (reads only; never submits anything)
+	@python3 tools/keyer-upstream/check_upstream.py --keyer "$(KEYER)"
 
 adapter-build:  ## build the adapter firmware (USB environment); never uploads
 	@cd "$(ADAPTER)" && pio run -e wemos_d1_mini32

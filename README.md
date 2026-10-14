@@ -122,6 +122,8 @@ make help      # everything else: schematics, keyer and adapter builds
 - Adapter: `make adapter-build`; upload over USB (`pio run -e wemos_d1_mini32 -t upload`) or OTA once it's on WiFi.
   See the adapter's README.
 - When both boards are on USB, pull JP1 (the ESP32 5V jumper) and keep the barrel supply off.
+- Upstream: the keyer's `UPSTREAM.md` maps each of its fixes and features back to upstream K3NG;
+  `make keyer-upstream` checks it against the branches.
 - Winkey: `tools/winkey-host/` is a small Winkey host (Python, no packages) for testing the keyer's Winkey emulation
   without a logging program.
 
