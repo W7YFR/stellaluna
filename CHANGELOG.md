@@ -9,6 +9,13 @@ together with which hardware is in the README's known-good sets table.
 
 Planned work is in [ROADMAP.md](ROADMAP.md).
 
+### Added
+- `tools/winkey-host/`: a small Winkey host for testing the keyer's Winkey emulation without a logging program.
+  It finds the keyer's port in its `platformio.ini`, and has tasks: `check` (is it answering, and its settings),
+  `farnsworth` (tests the Farnsworth translation, PASS or FAIL), `pots` (what the keyer reports as the pots turn),
+  `send`, and an interactive mode. Python 3 only (`termios`, no pyserial); `selftest` runs it against a built-in
+  fake keyer.
+
 ## 2026-10-10: repo created
 
 ### Added
