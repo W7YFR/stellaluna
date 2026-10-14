@@ -38,44 +38,6 @@ None open.
   RAM cost of each (word lists should live in `PROGMEM`).
 - **Done when:** Q-code practice and the other trainers start from the menu and exit cleanly back to it.
 
-### Choose the USB port's mode: CLI or Winkey (keyer)
-- **What:** with `FEATURE_WINKEY_EMULATION` built in, the USB port is either the CLI (115200 baud, text: `\S`,
-  `\$`, the `ESP>` log) or Winkey emulation (1200 baud, the WinKeyer's binary protocol, for logging programs), never
-  both. K3NG only chooses at power-on: the default comes from `OPTION_PRIMARY_SERIAL_PORT_DEFAULT_WINKEY_EMULATION`
-  and holding the command button gives the other. Make it a saved setting instead, so Winkey is something you turn
-  on when you want it rather than a power-on default.
-- **How:** a "USB port" setting (CLI / Winkey) in the menu and as `ky.usb` (`/KY USB WINKEY`, `\$ ky.usb winkey`),
-  only in builds with both `FEATURE_WINKEY_EMULATION` and `FEATURE_COMMAND_LINE_INTERFACE`, saved in the spare
-  EEPROM bytes after the configuration (`SETTINGS_EXTRAS_ADDRESS`). Changing it switches the port straight away:
-  end it, set `primary_serial_port_mode`, and begin it again at the mode's baud rate (the Winkey code already ends
-  and reopens the port for a host). At power-on the saved setting decides; the option is only the default before
-  anything is saved, and the command button at power-on still gives the other mode for that session, as a way back
-  without the display. Leaving Winkey mode should close any host session cleanly.
-- **Done when:** the menu or the CLI switches the port between CLI and Winkey without a power cycle, the choice
-  survives one, and builds without Winkey emulation don't show the setting.
-
-### Winkey hosts with the Farnsworth effective speed option (keyer)
-- **What:** with `OPTION_FARNSWORTH_SETS_EFFECTIVE_SPEED` (on in `w7yfr`), the keyer's speed is the character speed
-  and its Farnsworth setting the effective speed. A Winkey host (N1MM, Win-Test and the like, over
-  `FEATURE_WINKEY_EMULATION`) still means K3NG's and the K1EL WinKeyer's way: its speed is the overall speed and its
-  Farnsworth speed a faster character speed. So "speed 10, Farnsworth 25" from a host (characters at 25, overall 10)
-  reads as Farnsworth off and sends everything at 10. Winkey emulation isn't in the `w7yfr` build today.
-- **How:** a small translation layer at the Winkey edge, only with the option: two helpers and edits where Winkey
-  commands come in and reports go out, probably 50 to 80 lines. Keep the host's view of the two speeds and map it
-  onto the keyer's: Farnsworth on (host Farnsworth above host speed) means speed = host Farnsworth and Farnsworth =
-  host speed; otherwise speed = host speed and Farnsworth off. Incoming: the speed command
-  (`winkey_unbuffered_speed_command()`), the Farnsworth command (`winkey_farnsworth_command()`), HSCW and loading
-  settings (`winkey_load_settings_command()`). Outgoing, map back: the speed pot reports (`(wpm - pot_wpm_low_value)
-  | 128`, in a few places) and the settings dump (which writes `wpm_farnsworth` and the speed). Decided: the speed
-  pot keeps meaning the character speed while a host is connected, and is reported to the host as its Farnsworth
-  (character) speed when Farnsworth is on.
-- **Testing:** needs `FEATURE_WINKEY_EMULATION` in a build, which puts the USB port in Winkey mode (1200 baud, the
-  binary protocol; no CLI or `ESP>` log) at power-on; the command button held at power-on gives the CLI instead
-  (with `OPTION_PRIMARY_SERIAL_PORT_DEFAULT_WINKEY_EMULATION`, set in `w7yfr`; without it, the other way round).
-  Test with a logging program, or a short Python script that sends Winkey commands and reads the replies.
-- **Done when:** with the option on, a host's speed and Farnsworth settings send as they would on a K1EL WinKeyer,
-  the host shows the right speed when the pot moves, and nothing changes without the option.
-
 ## VBand features (firmware only)
 
 The adapter, and its side of the keyer.
@@ -93,20 +55,47 @@ The adapter, and its side of the keyer.
 - **Done when:** the cause of the drops is known, and, if they're stalls, one is reconnected within a few seconds of
   the server going silent.
 
-### VBand friends list (adapter, keyer)
-- **What:** a list of friends' callsigns. The adapter notices when a friend is on VBand and can take you to their
-  room.
+### VBand friends and lids (adapter, keyer)
+- **What:** mark people as friends or lids. The adapter notices when a friend is on VBand, and you can jump to the
+  room they're in.
 - **How:**
-  - A text setting for the list (`vb.friends`), with callsigns separated by a character the keyer can send (for
-    example `/`).
-  - The adapter already reads one channel's user list (`LU,<ch>`). Poll every channel's list, slowly (for example
-    one channel every few seconds, and only while connected), and match names against the list the same way sender
-    tags are found.
-  - When a friend appears: a status screen and a line on the keyer saying who and which room.
-  - A command to jump to the room a friend is in (`/FRIEND`, like `/BUSY`), and an optional startup mode that joins
-    a friend's room if one is on (next to Lobby, Last and Custom).
-- **Done when:** with a friend online, the keyer says where they are, `/FRIEND` joins that room, and the startup
-  mode joins it at power-on.
+  - **Who's here becomes a list:** each person in the current room is a row you move over (E down, T up, as in the
+    menu). `R` on a row starts editing it; dit and dah then cycle its mark between empty, `+` (friend) and `-` (lid),
+    and `R` saves. Empty is the default.
+  - **Two saved lists:** Friends and Lids, each with its own settings page (`vb.friends`, `vb.lids`). Each page lists
+    the callsigns on it and edits them the same way (`R`, dit/dah through `+` / `-` / empty, `R`); setting one to
+    empty takes it off the list, and moving it to the other mark moves it to the other list. Callsigns are stored
+    separated by a character the keyer can send (for example `/`), so they can also be set as text from the CLI.
+  - **Finding friends:** the adapter already reads one channel's user list (`LU,<ch>`). Poll every channel's list,
+    slowly (for example one channel every few seconds, and only while connected), and match names against Friends
+    the same way sender tags are found. When a friend appears: a status screen and a line on the keyer saying who
+    and which room.
+  - **Jumping to a friend:** a command to join the room a friend is in (`/FRIEND`, like `/BUSY`; with more than one
+    online, a list to pick from), and an optional startup mode that joins a friend's room if one is on (next to
+    Lobby, Last and Custom).
+  - **Lids are silenced:** the adapter doesn't play or show a lid's sending (no audio, no text on the keyer),
+    found by the same sender tags. Joins and leaves can still show, so you know they're there.
+  - Check the RAM and link cost: the lists live on the adapter, and the keyer's menu gets rows from it a few at a
+    time, as the adapter's settings list already is.
+- **Done when:** Who's here marks people as friends or lids, both lists can be edited from their pages and survive a
+  power cycle, a lid's sending is silent, the keyer says when a friend is on and where, and `/FRIEND` (or the
+  startup mode) joins their room.
+
+### VBand on the CLI terminal (adapter, keyer)
+- **What:** a "VBand UI" on the keyer's CLI: the VBand session (who sent what, joins and leaves, room changes,
+  connects and drops) printed to the USB terminal as it happens, so the terminal's scrollback keeps the whole
+  conversation, which the OLED's four lines can't. Possibly an "export session" option to save it.
+- **How:**
+  - The adapter already sends received text, sender tags and join/leave lines over the link for the display, and
+    its log (`vb.log`, printed as `ESP> ` lines). Add what's missing for a readable transcript (the sender's full
+    name, timestamps, room changes) as new frame types, which needs no protocol version bump.
+  - The keyer prints it to the CLI as lines (`[12:04] W7YFR: CQ CQ`), turned on with a CLI command or setting
+    (for example `\V` or `vb.ui`), only in CLI mode (nothing in Winkey mode). The Mega has too little RAM to keep
+    the session, so the terminal's scrollback is the record.
+  - Export: either the terminal saves its scrollback, or the adapter (more RAM) keeps the session and a command
+    (`/EXPORT`, or a CLI command) prints it all at once, between start and end markers, to copy or capture.
+- **Done when:** with it on, a VBand session reads as a transcript in the terminal, and an export gives the whole
+  session in one go.
 
 ## Features that need hardware work
 
