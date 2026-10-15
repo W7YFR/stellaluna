@@ -6,9 +6,10 @@ Builds the K3NG keyer firmware from any checkout or worktree, on any branch, wit
 1. copies the checkout's `k3ng_keyer/` sketch to a scratch folder (`$TMPDIR/stellaluna-keyer-build/`; PlatformIO's
    library cache there is kept between runs);
 2. adds a known `platformio.ini` (ATmega2560 unless the preset says otherwise, the checkout's `libraries/`);
-3. applies the three small fixes PlatformIO builds need, only where the branch doesn't have them already
+3. applies the small fixes PlatformIO builds need, only where the branch doesn't have them already
    (`lcd_center_print_timed_wpm` and `NETWORK_CLIENT_CLS` from `build/platformio`, `convert_prosign` from
-   `fix/prosign-forward-declaration`);
+   `fix/prosign-forward-declaration`, and the other functions declared ahead in
+   `fix/platformio-forward-declarations`, which other boards' profiles need), so any branch and `master` build;
 4. applies the preset's feature toggles to the copy, and builds;
 5. prints one line per build: ok or FAIL, RAM and flash use, the first errors, and the log's path.
 
@@ -50,8 +51,8 @@ once, when the change is believed done.
 `make keyer-matrix` runs with `--compare master`: each preset is also built on `master` (once per `master` commit;
 the results are cached), and errors `master` already has don't count. Each line then reads:
 - `ok`: builds.
-- `old`: fails, but only with errors `master` has too (expected for some other boards' profiles: upstream builds with
-  the Arduino IDE, and PlatformIO's prototype scanner misses some of its functions).
+- `old`: fails, but only with errors `master` has too. With the fixes above, every preset builds on `master`, so this
+  shouldn't happen; if it does, a new upstream change needs another fix here.
 - `FAIL`: has errors `master` doesn't. These are the ones to fix.
 
 `--compare <ref>` works with any branch or commit, for example the branch a feature was cut from.

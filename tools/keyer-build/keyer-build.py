@@ -16,7 +16,7 @@ Presets are text files in presets/ (see presets/as-is.txt):
     lib <platformio library>      an extra library the profile needs (for example lib arduino-libraries/Ethernet)
     flag <compiler flag>          an extra compiler flag (for example flag -Wno-narrowing)
 """
-import argparse, json, os, re, shutil, subprocess, sys, tempfile
+import argparse, hashlib, json, os, re, shutil, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PRESETS = os.path.join(HERE, 'presets')
@@ -25,17 +25,30 @@ BUILD_ROOT = os.path.join(tempfile.gettempdir(), 'stellaluna-keyer-build')
 
 # PlatformIO's .ino prototype scanner needs these. They live on the fork's build/platformio and
 # fix/prosign-forward-declaration branches; each is applied only if the checkout doesn't have it already.
+# (file, marker, anchor, text, where): the text goes before or after the anchor, unless the marker shows the
+# branch has the fix already.
 FIXES = [
     ('keyer_dependencies.h', 'void lcd_center_print_timed_wpm();',
      '#if defined(FEATURE_COMMAND_LINE_INTERFACE_ON_SECONDARY_PORT) && !defined(FEATURE_COMMAND_LINE_INTERFACE)',
-     '#ifdef FEATURE_DISPLAY\n  void lcd_center_print_timed_wpm();  // keyer-build: PlatformIO prototype fix\n#endif\n\n'),
+     '#ifdef FEATURE_DISPLAY\n  void lcd_center_print_timed_wpm();  // keyer-build: PlatformIO prototype fix\n#endif\n\n',
+     'before'),
     ('k3ng_keyer.ino', '#define NETWORK_CLIENT_CLS int', '#define memory_area_start',
-     '#ifndef NETWORK_CLIENT_CLS\n  #define NETWORK_CLIENT_CLS int  // keyer-build: PlatformIO prototype fix\n#endif\n\n'),
+     '#ifndef NETWORK_CLIENT_CLS\n  #define NETWORK_CLIENT_CLS int  // keyer-build: PlatformIO prototype fix\n#endif\n\n',
+     'before'),
+    # fix/prosign-forward-declaration
     ('k3ng_keyer.ino', 'char * convert_prosign(byte prosign_code);', '#include "keyer_debug.h"\n',
-     None),  # inserted after the anchor, below
+     '#if defined(OPTION_PROSIGN_SUPPORT)\n  char * convert_prosign(byte prosign_code);  // keyer-build: PlatformIO prototype fix\n'
+     '#endif\n',
+     'after'),
+    # fix/platformio-forward-declarations (other boards' profiles: test-everything, megakeyer)
+    ('k3ng_keyer.ino', 'void sidetone_adj(int hz);', '#include "keyer_debug.h"\n',
+     '// keyer-build: PlatformIO prototype fix\n'
+     '#if defined(FEATURE_STRAIGHT_KEY)\n  long service_straight_key();\n#endif\n'
+     '#if defined(FEATURE_BEACON_SETTING)\n  void service_beacon();\n#endif\n'
+     '#if defined(FEATURE_SO2R_SWITCHES)\n  void so2r_switches();\n#endif\n'
+     'void sidetone_adj(int hz);\n',
+     'after'),
 ]
-PROSIGN_FIX = ('#if defined(OPTION_PROSIGN_SUPPORT)\n  char * convert_prosign(byte prosign_code);  // keyer-build: PlatformIO prototype fix\n'
-               '#endif\n')
 
 def load_preset(name, seen=()):
     path = os.path.join(PRESETS, name + '.txt')
@@ -72,12 +85,12 @@ def prepare(keyer, name, preset, extra_on, extra_off, extra_set):
     if os.path.exists(sketch): shutil.rmtree(sketch)  # keep .pio/ between runs: it caches the libraries
     shutil.copytree(src, sketch)
     notes = []
-    for fname, marker, anchor, insert in FIXES:
+    for fname, marker, anchor, text, where in FIXES:
         p = os.path.join(sketch, fname)
         s = open(p, encoding='latin-1').read()
         if marker not in s:
             if anchor not in s: sys.exit(f'can\'t apply the PlatformIO fix to {fname}: {anchor!r} not found')
-            s = s.replace(anchor, anchor + PROSIGN_FIX if insert is None else insert + anchor, 1)
+            s = s.replace(anchor, anchor + text if where == 'after' else text + anchor, 1)
             open(p, 'w', encoding='latin-1').write(s)
             notes.append(f'applied PlatformIO fix to {fname}')
     headers = [os.path.join(sketch, f) for f in os.listdir(sketch) if f.startswith('keyer_') and f.endswith('.h')]
@@ -139,6 +152,7 @@ def baseline(keyer, ref, names, args):
     cache_path = os.path.join(BUILD_ROOT, 'baseline-cache.json')
     cache = json.load(open(cache_path)) if os.path.exists(cache_path) else {}
     flags = ' '.join(args.on + ['-U' + x for x in args.off] + args.set)
+    flags += ' fixes:' + hashlib.sha1(repr(FIXES).encode()).hexdigest()[:8]  # results from older fixes don't count
     todo = [n for n in names if f'{sha}|{n}|{flags}' not in cache]
     if todo:
         wt = tempfile.mkdtemp(prefix='keyer-base-')

@@ -99,9 +99,10 @@ None of them upload anything.
   the one configuration that matters (`as-is` on the `w7yfr` copy, or `w7yfr-features` on the branch). Don't run
   the matrix after each step. Run `make keyer-matrix` once, when the feature is believed done and before committing.
   It also builds each preset on `master` (cached per commit) and marks failures `master` already has as `old`; only
-  `FAIL` lines are new problems. Some other boards' profiles fail on upstream `master` under PlatformIO (functions
-  its prototype scanner misses), so `old` is expected there. The person flashes and tests quickly and will report
-  problems.
+  `FAIL` lines are new problems. The tool adds the forward declarations PlatformIO needs to any branch that lacks
+  them, so every preset builds on `master` and the whole matrix should be `ok`. Treat an `old` line as something to
+  fix in the tool (a new upstream change needing another declaration), not as expected. The person flashes and tests
+  quickly and will report problems.
 - **Upstream map.** The keyer's `UPSTREAM.md` maps every fix/feature branch back to upstream K3NG (base, in `w7yfr`,
   readiness). When a branch is created or merged, add or update its row and run `make keyer-upstream`. Never open
   pull requests, issues or comments against upstream: getting branches ready is the job, submitting is the owner's
