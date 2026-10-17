@@ -55,6 +55,29 @@ The adapter, and its side of the keyer.
 - **Done when:** the cause of the drops is known, and, if they're stalls, one is reconnected within a few seconds of
   the server going silent.
 
+### The adapter runs the VBand menu (adapter, keyer)
+- **What:** the keyer keeps a copy of the adapter's settings list to draw VBand > Settings, which costs RAM all the
+  time and has limits: past them, rows are silently dropped (the Transcript row was, until the limit went from 16 to
+  20 settings and from 4 to 6 option lists). New VBand settings, and the list editing friends and lids needs, keep
+  running into the keyer's side.
+- **How:**
+  - The adapter runs the VBand group of the menu; the keyer only draws it. Inside that group the keyer sends each key
+    (E, T, R, B, and dit / dah while a value is being changed) and the adapter answers with what to show: the page's
+    title, its rows, the cursor and whether a value is being edited. Cursor moves within the visible rows are one
+    small frame; a full page is a few (four rows of 18 don't fit in one 64-byte frame).
+  - The keyer draws these with its own menu code, so the VBand group looks and keys like the rest, and the adapter
+    follows the same rules (`< Back` first, a list opens on row 1, nothing transmits in the menu). The keyer's own
+    settings stay on the keyer.
+  - New frame types only, no protocol version bump. The keyer asks for a redraw if a page doesn't come, and shows
+    "Adapter busy" if the adapter is stuck in a blocking call (WiFi connecting, OTA) rather than hanging.
+  - Keyed shortcuts (`/VB UI ON`) and the CLI (`\$ vb.ui on`) already go by key and stay as they are; `\$` listing
+    the adapter's settings streams them instead of holding a list.
+  - Then remove the keyer's copy of the list (`settings_adapter_items` and its text and option slots), about 700
+    bytes of RAM.
+  - Do it before friends and lids, whose list pages are much easier to build on the adapter.
+- **Done when:** VBand > Settings and Commands work as now with no list held on the keyer, a new adapter setting
+  appears in the menu with only the adapter reflashed, and scrolling feels as quick as the keyer's own lists.
+
 ### VBand friends and lids (adapter, keyer)
 - **What:** mark people as friends or lids. The adapter notices when a friend is on VBand, and you can jump to the
   room they're in.
@@ -81,21 +104,42 @@ The adapter, and its side of the keyer.
   power cycle, a lid's sending is silent, the keyer says when a friend is on and where, and `/FRIEND` (or the
   startup mode) joins their room.
 
-### VBand on the CLI terminal (adapter, keyer)
-- **What:** a "VBand UI" on the keyer's CLI: the VBand session (who sent what, joins and leaves, room changes,
-  connects and drops) printed to the USB terminal as it happens, so the terminal's scrollback keeps the whole
-  conversation, which the OLED's four lines can't. Possibly an "export session" option to save it.
+### Perfectly timed sending to VBand (keyer, adapter)
+- **What:** an option to send VBand perfectly timed Morse, so everyone's decoder copies you exactly. VBand only
+  carries timing (`SM,<space>,<mark>`), and each listener decodes it. The elements and the gaps inside a letter are
+  already exact (the keyer makes them, and the adapter times the key line in an interrupt), but the gaps between
+  letters and words come from your hands: too short and a listener's decoder runs two letters together. The
+  transcript shows this, since it decodes your keying the way listeners do.
 - **How:**
-  - The adapter already sends received text, sender tags and join/leave lines over the link for the display, and
-    its log (`vb.log`, printed as `ESP> ` lines). Add what's missing for a readable transcript (the sender's full
-    name, timestamps, room changes) as new frame types, which needs no protocol version bump.
-  - The keyer prints it to the CLI as lines (`[12:04] W7YFR: CQ CQ`), turned on with a CLI command or setting
-    (for example `\V` or `vb.ui`), only in CLI mode (nothing in Winkey mode). The Mega has too little RAM to keep
-    the session, so the terminal's scrollback is the record.
-  - Export: either the terminal saves its scrollback, or the adapter (more RAM) keeps the session and a command
-    (`/EXPORT`, or a CLI command) prints it all at once, between start and end markers, to copy or capture.
-- **Done when:** with it on, a VBand session reads as a transcript in the terminal, and an export gives the whole
-  session in one go.
+  - A setting (for example `vb.clean`, off by default). When on, the keyer sends the adapter each letter it sends, as
+    it knows it (a new frame, e.g. `ME,<text>`, from where it echoes your sending to the display: paddles, memories,
+    CLI text), and the adapter sends VBand elements timed exactly for your WPM (`SM` pairs), instead of the key line's
+    timing. Word gaps: a pause past a word space becomes one exact word space.
+  - The costs to weigh: listeners hear you about a letter late, out of step with your sidetone (a letter can only go
+    out once it's finished); your fist is gone; the adapter needs your WPM (the keyer's, over the link, as the
+    sidetone item plans for `st.hz`).
+  - With it on, the transcript can use the keyer's letters directly instead of decoding the key line.
+  - K3NG's autospace (`FEATURE_AUTOSPACE`, off in this build) fixes only letters running together, with no delay;
+    it's the lighter alternative, already in the keyer.
+- **Done when:** with it on, a listener on the website copies exactly what the keyer's display shows you sent.
+
+### Export the VBand transcript, and the Stella tool (adapter, keyer, new repo)
+- **What:** the live transcript (`vb.ui`) is done: the session prints on the keyer's USB port as it happens, and the
+  adapter always records it (the last 32 KB, one line per finished message, in the order they started; see the
+  adapter's README, Transcript). What's left is getting the recording out in one go, and a better place to read
+  it than a plain terminal.
+- **How:**
+  - `/EXPORT` prints the recording, between start and end markers. It runs from command mode with keying off and an
+    OLED screen showing the progress; keying X cancels it. Unlike the log, nothing is dropped when USB is slow: the
+    keyer waits for room, since keying is off anyway. Received audio keeps playing and recording goes on; the
+    adapter holds back the OLED's text frames until the export is done. The link stays at 38400 baud (32 KB takes
+    roughly 10-20 s).
+  - `stella-cli`, a cross-platform Python tool in its own repo next to the others (listed in this hub): saves exports
+    to a file and shows the live stream better than a terminal can (it can rewrite an interrupted message in
+    place). Over the keyer's USB with a third USB port mode (CLI / Winkey / Stella) that passes the link's frames
+    through, or over the adapter's WiFi, or both: to decide when this starts. Over WiFi, the adapter's sends must
+    never block the VBand connection. Look at how upstream's ESP32 build uses K3NG's web server first.
+- **Done when:** an export gives the whole session in one go, saved to a file by the tool.
 
 ## Features that need hardware work
 
