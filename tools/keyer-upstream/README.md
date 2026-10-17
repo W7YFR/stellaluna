@@ -21,7 +21,9 @@ It checks:
   version of another (as `feature/settings-menu` is from `feature/vband-link`) is still caught if unlisted
 - "In `w7yfr`": `yes` is merged; `copy <commit>` is a commit on `w7yfr` with the same subject as the branch's own
   commit (it was committed there directly), with the branch itself not merged; `no` is neither
-- upstream `master` hasn't moved on from the local `master`, and every branch is cut from that `master`
+- upstream `master` hasn't moved on from the local `master`. Branches cut from an older `master` are only noted
+  (with a count), not an error: each is rebased when it's about to be offered (step 1 of `UPSTREAM.md`'s
+  checklist), rather than all of them, force-pushed, every time upstream moves
 
 It only reads: it fetches `upstream` and `origin` and never pushes, and never opens anything upstream. It prints
 "matches" or a list of what to fix, and exits 1 if anything doesn't match.

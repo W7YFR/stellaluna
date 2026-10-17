@@ -81,6 +81,7 @@ def main():
     if not os.path.exists(table_path):
         raise SystemExit("%s not found (is the keyer checkout on w7yfr?)" % table_path)
     problems = []
+    behind = []  # cut from an older master: rebased when offered (UPSTREAM.md's checklist), not an error
 
     if not args.no_fetch:
         repo.git("fetch", "-q", "upstream", "master")
@@ -131,9 +132,9 @@ def main():
         elif repo.git("rev-parse", b) != repo.git("rev-parse", "origin/" + b):
             problems.append("%s: differs from origin/%s (push or pull)" % (b, b))
 
-        # cut from the current master
+        # cut from the current master: rebased only when it's about to be offered
         if repo.git("merge-base", b, "master") != master:
-            problems.append("%s: cut from an older master; rebase it on master" % b)
+            behind.append(b)
 
         # bases
         bases = [x for x in row["bases"] if x != "master"]
@@ -171,13 +172,18 @@ def main():
         else:
             problems.append("%s: In w7yfr %r isn't yes, copy <commit> or no" % (b, w))
 
+    note = ""
+    if behind:
+        note = ("note: %d of %d branches are cut from an older master; rebase each on master before offering it"
+                % (len(behind), len(listed)))
     if problems:
         print("UPSTREAM.md doesn't match git:")
         for p in problems:
             print("  - " + p)
+        if note: print(note)
         return 1
-    print("UPSTREAM.md matches git: %d branches, all pushed and cut from master %s (upstream hasn't moved)"
-          % (len(listed), master[:7]))
+    print("UPSTREAM.md matches git: %d branches, all pushed; master is at upstream's %s" % (len(listed), master[:7]))
+    if note: print(note)
     return 0
 
 
