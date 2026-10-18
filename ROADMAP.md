@@ -55,29 +55,6 @@ The adapter, and its side of the keyer.
 - **Done when:** the cause of the drops is known, and, if they're stalls, one is reconnected within a few seconds of
   the server going silent.
 
-### The adapter runs the VBand menu (adapter, keyer)
-- **What:** the keyer keeps a copy of the adapter's settings list to draw VBand > Settings, which costs RAM all the
-  time and has limits: past them, rows are silently dropped (the Transcript row was, until the limit went from 16 to
-  20 settings and from 4 to 6 option lists). New VBand settings, and the list editing friends and lids needs, keep
-  running into the keyer's side.
-- **How:**
-  - The adapter runs the VBand group of the menu; the keyer only draws it. Inside that group the keyer sends each key
-    (E, T, R, B, and dit / dah while a value is being changed) and the adapter answers with what to show: the page's
-    title, its rows, the cursor and whether a value is being edited. Cursor moves within the visible rows are one
-    small frame; a full page is a few (four rows of 18 don't fit in one 64-byte frame).
-  - The keyer draws these with its own menu code, so the VBand group looks and keys like the rest, and the adapter
-    follows the same rules (`< Back` first, a list opens on row 1, nothing transmits in the menu). The keyer's own
-    settings stay on the keyer.
-  - New frame types only, no protocol version bump. The keyer asks for a redraw if a page doesn't come, and shows
-    "Adapter busy" if the adapter is stuck in a blocking call (WiFi connecting, OTA) rather than hanging.
-  - Keyed shortcuts (`/VB UI ON`) and the CLI (`\$ vb.ui on`) already go by key and stay as they are; `\$` listing
-    the adapter's settings streams them instead of holding a list.
-  - Then remove the keyer's copy of the list (`settings_adapter_items` and its text and option slots), about 700
-    bytes of RAM.
-  - Do it before friends and lids, whose list pages are much easier to build on the adapter.
-- **Done when:** VBand > Settings and Commands work as now with no list held on the keyer, a new adapter setting
-  appears in the menu with only the adapter reflashed, and scrolling feels as quick as the keyer's own lists.
-
 ### VBand friends and lids (adapter, keyer)
 - **What:** mark people as friends or lids. The adapter notices when a friend is on VBand, and you can jump to the
   room they're in.
@@ -98,8 +75,8 @@ The adapter, and its side of the keyer.
     Lobby, Last and Custom).
   - **Lids are silenced:** the adapter doesn't play or show a lid's sending (no audio, no text on the keyer),
     found by the same sender tags. Joins and leaves can still show, so you know they're there.
-  - Check the RAM and link cost: the lists live on the adapter, and the keyer's menu gets rows from it a few at a
-    time, as the adapter's settings list already is.
+  - The lists live on the adapter, and their pages are adapter menu pages (the adapter runs the VBand group of the
+    menu; the keyer only draws it), so the keyer needs no change for them beyond what Who's here shows.
 - **Done when:** Who's here marks people as friends or lids, both lists can be edited from their pages and survive a
   power cycle, a lid's sending is silent, the keyer says when a friend is on and where, and `/FRIEND` (or the
   startup mode) joins their room.

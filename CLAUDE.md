@@ -107,7 +107,7 @@ None of them upload anything.
   readiness). When a branch is created or merged, add or update its row and run `make keyer-upstream`. Never open
   pull requests, issues or comments against upstream: getting branches ready is the job, submitting is the owner's
   call.
-- RAM is tight (about 54% used, 3.8 KB free): check the RAM figure in the build summary, and put large tables and
+- RAM is tight (about 47% used, 4.3 KB free): check the RAM figure in the build summary, and put large tables and
   strings in `PROGMEM`.
 - Arduino's generated prototypes can mention types declared inside `#ifdef`s: define such structs unconditionally.
 
