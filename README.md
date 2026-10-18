@@ -102,6 +102,7 @@ The three repos are independent; there are no submodules.
 
 | Set | Hardware | Keyer (`w7yfr`) | Adapter (`main`) | Link protocol | Notes |
 |---|---|---|---|---|---|
+| `set-2026-10` | v0 hand-wired | `63cc8d4` | `b61e49f` | 2 | menu groups, Cmd button, USB port mode, transcript, Sending switch, WiFi mode, encrypted VBand, the adapter runs the VBand menu |
 | (untagged) 2026-10-07 | v0 hand-wired | `b37df8f` | `994b395` | 1 | settings menu, start modes, lobby, room counts |
 
 ## Getting set up
